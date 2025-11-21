@@ -17,11 +17,11 @@ export const AdvList = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Zap className="text-violet-500" />
+            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <Zap className="text-violet-500 fill-violet-500" />
               N4/N5 Adverbs
             </h2>
-            <p className="text-gray-500 text-sm font-mm">ကြိယာဝိသေသနများ</p>
+            <p className="text-slate-500 text-sm font-mm mt-1">ကြိယာဝိသေသနများ (Fukushi)</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -35,11 +35,11 @@ export const AdvList = () => {
             </Link>
             
             <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
                 <input 
                     type="text" 
                     placeholder="Search adverbs..." 
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all text-slate-900 placeholder-slate-400"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -47,26 +47,33 @@ export const AdvList = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="divide-y divide-gray-100">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-500 text-xs uppercase tracking-wider items-center">
+           <div className="col-span-1 text-center">No.</div>
+           <div className="col-span-3">Word</div>
+           <div className="col-span-4">Reading</div>
+           <div className="col-span-4">Meaning</div>
+        </div>
+
+        <div className="divide-y divide-slate-100">
             {filteredData.map((entry) => (
-                <div key={entry.id} className="p-4 hover:bg-violet-50/30 transition-colors grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 items-center">
-                    <div className="md:col-span-1 text-gray-400 text-xs font-mono md:text-center flex gap-2 md:block">
+                <div key={entry.id} className="p-4 hover:bg-violet-50/30 transition-colors grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 items-center group">
+                    <div className="md:col-span-1 text-slate-400 text-xs font-mono md:text-center flex gap-2 md:block">
                         <span className="md:hidden">No.</span>
                         {entry.id}
                     </div>
-                    <div className="md:col-span-3 font-bold text-gray-800 text-xl font-jp">
+                    <div className="md:col-span-3 font-bold text-slate-800 text-xl font-jp">
                         {entry.word}
                     </div>
-                    <div className="md:col-span-4 font-medium text-gray-600 font-jp">{entry.reading}</div>
-                    <div className="md:col-span-4 font-mm text-gray-700">{entry.meaning}</div>
+                    <div className="md:col-span-4 font-medium text-slate-600 font-jp">{entry.reading || '-'}</div>
+                    <div className="md:col-span-4 font-mm text-slate-700">{entry.meaning}</div>
                 </div>
             ))}
         </div>
 
         {filteredData.length === 0 && (
-            <div className="text-center py-12">
-                <p className="text-gray-500">No results found.</p>
+            <div className="text-center py-16">
+                <p className="text-slate-500">No results found.</p>
             </div>
         )}
       </div>

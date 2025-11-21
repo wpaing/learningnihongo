@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { RotateCw, ArrowRight, ArrowLeft, Settings2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { RotateCw, Layers, Sparkles, Check, X } from 'lucide-react';
 import { KanjiEntry, FlashcardMode } from '../types';
 
 interface FlashcardItem {
@@ -15,12 +15,10 @@ export const Flashcards = ({ data }: { data: KanjiEntry[] }) => {
   const [cards, setCards] = useState<FlashcardItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [direction, setDirection] = useState(0);
+  const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
 
-  // Initialize cards based on mode
   useEffect(() => {
     let newCards: FlashcardItem[] = [];
-
     if (mode === FlashcardMode.KANJI_TO_READING) {
       newCards = data.map(k => ({
         front: k.kanji,
@@ -40,122 +38,174 @@ export const Flashcards = ({ data }: { data: KanjiEntry[] }) => {
         });
       });
     }
-    
-    // Shuffle
     newCards = newCards.sort(() => Math.random() - 0.5);
     setCards(newCards);
     setCurrentIndex(0);
     setIsFlipped(false);
+    setFeedback(null);
   }, [mode, data]);
 
-  const handleNext = () => {
-    setIsFlipped(false);
-    setDirection(1);
+  const handleResult = useCallback((result: 'correct' | 'incorrect') => {
+    setFeedback(result);
     setTimeout(() => {
+        setIsFlipped(false);
+        setFeedback(null);
         setCurrentIndex((prev) => (prev + 1) % cards.length);
-        setDirection(0);
-    }, 200);
-  };
+    }, 500);
+  }, [cards.length]);
 
-  const handlePrev = () => {
-    setIsFlipped(false);
-    setDirection(-1);
-    setTimeout(() => {
-        setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length);
-        setDirection(0);
-    }, 200);
-  };
+  const handleFlip = useCallback(() => {
+    setIsFlipped(prev => !prev);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isFlipped && e.code === 'Space') {
+        e.preventDefault();
+        handleFlip();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFlipped, handleFlip]);
 
   const currentCard = cards[currentIndex];
-
-  if (!currentCard) return <div className="p-10 text-center text-slate-400">Loading flashcards...</div>;
+  if (!currentCard) return <div className="min-h-[400px] flex items-center justify-center text-slate-400 font-medium">Preparing deck...</div>;
+  const progress = ((currentIndex + 1) / cards.length) * 100;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-      {/* Controls */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-3 text-slate-700 font-bold text-sm uppercase tracking-wide">
-            <div className="bg-indigo-50 p-2 rounded-lg text-indigo-600">
-                <Settings2 size={18} />
-            </div>
-            <span>Study Mode:</span>
+    <div className="max-w-2xl mx-auto space-y-6 animate-fade-in pb-12">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-end gap-4">
+        <div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-lg"><Layers size={20} /></div>
+                N4 Practice Deck
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Master vocab through repetition</p>
         </div>
-        <select 
-            value={mode} 
-            onChange={(e) => setMode(e.target.value as FlashcardMode)}
-            className="bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-auto p-2.5 px-4"
-        >
-            <option value={FlashcardMode.COMPOUND_TO_MEANING}>Word → Meaning</option>
-            <option value={FlashcardMode.KANJI_TO_READING}>Kanji → Readings</option>
-        </select>
-        <div className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
-            {currentIndex + 1} / {cards.length}
+        <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <select 
+                value={mode} 
+                onChange={(e) => setMode(e.target.value as FlashcardMode)}
+                className="bg-transparent border-0 text-slate-700 dark:text-slate-200 text-sm font-bold focus:ring-0 py-1.5 pl-3 pr-8 cursor-pointer dark:bg-slate-800"
+            >
+                <option value={FlashcardMode.COMPOUND_TO_MEANING}>Word → Meaning</option>
+                <option value={FlashcardMode.KANJI_TO_READING}>Kanji → Readings</option>
+            </select>
         </div>
       </div>
 
-      {/* Card Container */}
-      <div className="relative h-96 w-full perspective-1000">
-        <div 
-            className={`relative w-full h-full duration-500 transform-style-3d cursor-pointer transition-all ${isFlipped ? 'rotate-y-180' : ''} ${direction !== 0 ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}
-            onClick={() => setIsFlipped(!isFlipped)}
-        >
-            {/* Front */}
-            <div className="absolute w-full h-full bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 backface-hidden flex flex-col items-center justify-center p-8 group">
-                <div className="absolute top-6 right-6 w-3 h-3 rounded-full bg-slate-200 group-hover:bg-indigo-400 transition-colors"></div>
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-slate-300 mb-8">
-                    {currentCard.type === 'kanji' ? 'Kanji Character' : 'Vocabulary'}
-                </span>
-                <h2 className="text-7xl font-bold text-slate-800 font-jp text-center mb-10 tracking-wider">
-                    {currentCard.front}
-                </h2>
-                <div className="mt-auto flex flex-col items-center gap-2">
-                    <p className="text-slate-400 text-xs font-medium uppercase tracking-wider">Tap to reveal</p>
-                    <div className="w-12 h-1 bg-slate-100 rounded-full group-hover:bg-indigo-100 transition-colors"></div>
+      {/* Progress */}
+      <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+        <div className="bg-indigo-500 h-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+      </div>
+
+      {/* 3D Card Container */}
+      <div className="relative h-[420px] w-full perspective-1000">
+        <div className={`relative w-full h-full duration-500 transform-style-3d transition-all ease-out ${isFlipped ? 'rotate-y-180' : ''} ${feedback === 'correct' ? 'translate-x-[120%] opacity-0 rotate-12' : ''} ${feedback === 'incorrect' ? '-translate-x-[120%] opacity-0 -rotate-12' : ''}`}>
+            
+            {/* FRONT */}
+            <div 
+                onClick={handleFlip}
+                className="absolute inset-0 bg-white dark:bg-slate-800 rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-slate-100 dark:border-slate-700 backface-hidden flex flex-col items-center justify-center p-8 cursor-pointer hover:shadow-xl transition-shadow group overflow-hidden"
+            >
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                <div className="absolute top-6 right-6 text-xs font-bold text-slate-300 dark:text-slate-600 bg-slate-50 dark:bg-slate-900/50 px-2 py-1 rounded border border-slate-100 dark:border-slate-700">
+                    {currentIndex + 1} / {cards.length}
+                </div>
+                
+                <div className="text-center space-y-8 z-10">
+                    <span className="inline-block text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-400 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full">
+                        {currentCard.type === 'kanji' ? 'Kanji' : 'Vocabulary'}
+                    </span>
+                    <h2 className="text-6xl md:text-7xl font-bold text-slate-800 dark:text-white font-jp tracking-tight group-hover:scale-105 transition-transform duration-300">
+                        {currentCard.front}
+                    </h2>
+                </div>
+
+                {/* Front Bottom Action Area */}
+                <div className="absolute bottom-0 w-full p-6 flex justify-center bg-gradient-to-t from-white dark:from-slate-800 to-transparent pt-12">
+                    <button className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-wider animate-pulse hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors flex items-col gap-2">
+                        Click to Flip
+                    </button>
                 </div>
             </div>
 
-            {/* Back */}
-            <div className="absolute w-full h-full bg-gradient-to-br from-indigo-600 to-violet-700 rounded-[2rem] shadow-[0_20px_50px_rgba(79,70,229,0.3)] backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8 text-white border border-indigo-500/50">
-                 <span className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-200/70 mb-8">
-                    Definition
-                </span>
-                <h2 className="text-4xl font-bold text-white font-mm text-center leading-relaxed mb-6">
-                    {currentCard.backMain}
-                </h2>
-                {currentCard.backSub && (
-                    <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-xl border border-white/10">
-                        <p className="text-xl text-indigo-50 font-jp font-medium">
+            {/* BACK */}
+            <div className="absolute inset-0 bg-slate-900 rounded-3xl shadow-2xl backface-hidden rotate-y-180 flex flex-col overflow-hidden border border-slate-700">
+                 {/* Decorative Backgrounds */}
+                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600 rounded-full mix-blend-overlay filter blur-[80px] opacity-30 pointer-events-none"></div>
+                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-600 rounded-full mix-blend-overlay filter blur-[80px] opacity-30 pointer-events-none"></div>
+
+                 {/* Visual Feedback Overlays */}
+                 {feedback === 'correct' && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-green-500/20 backdrop-blur-[2px] animate-fade-in">
+                        <div className="bg-white dark:bg-slate-800 rounded-full p-6 shadow-2xl transform scale-110 transition-transform">
+                            <Check size={48} className="text-green-500" strokeWidth={4} />
+                        </div>
+                    </div>
+                 )}
+                 {feedback === 'incorrect' && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-red-500/20 backdrop-blur-[2px] animate-fade-in">
+                        <div className="bg-white dark:bg-slate-800 rounded-full p-6 shadow-2xl transform scale-110 transition-transform">
+                            <X size={48} className="text-red-500" strokeWidth={4} />
+                        </div>
+                    </div>
+                 )}
+
+                 {/* Content Area (Takes up remaining space) */}
+                 <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-8 text-center w-full">
+                    <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-6 text-indigo-300 backdrop-blur-sm shadow-inner">
+                        <Sparkles size={20} />
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-bold text-white font-mm leading-relaxed mb-6 drop-shadow-md">
+                        {currentCard.backMain}
+                    </h2>
+                    {currentCard.backSub && (
+                        <p className="text-lg text-indigo-100 font-jp font-medium bg-white/10 px-5 py-2.5 rounded-xl border border-white/5 backdrop-blur-sm shadow-sm">
                             {currentCard.backSub}
                         </p>
-                    </div>
-                )}
+                    )}
+                </div>
+
+                 {/* Result Actions (Bottom Positioned) */}
+                 <div className="relative z-20 p-8 pb-10 flex items-center justify-center gap-8 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent">
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); handleResult('incorrect'); }} 
+                        className="group flex flex-col items-center gap-2 outline-none"
+                        title="Study Again"
+                    >
+                        <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 group-hover:bg-red-500 group-hover:text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-red-500/40 hover:scale-110 active:scale-95">
+                            <X size={28} strokeWidth={3} />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-red-400/60 group-hover:text-red-400 transition-colors">Again</span>
+                    </button>
+
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); handleFlip(); }} 
+                        className="group flex flex-col items-center gap-2 outline-none"
+                        title="Flip Back"
+                    >
+                        <div className="w-12 h-12 rounded-full bg-slate-800 border border-slate-600 text-slate-400 group-hover:bg-indigo-600 group-hover:border-indigo-500 group-hover:text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-indigo-500/40 hover:scale-110 active:scale-95">
+                            <RotateCw size={20} />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 group-hover:text-indigo-400 transition-colors">Flip</span>
+                    </button>
+
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); handleResult('correct'); }} 
+                        className="group flex flex-col items-center gap-2 outline-none"
+                        title="Got It"
+                    >
+                        <div className="w-14 h-14 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 group-hover:bg-green-500 group-hover:text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-green-500/40 hover:scale-110 active:scale-95">
+                            <Check size={28} strokeWidth={3} />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-green-400/60 group-hover:text-green-400 transition-colors">Easy</span>
+                    </button>
+                 </div>
             </div>
         </div>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex justify-center items-center gap-6 pt-4">
-        <button 
-            onClick={handlePrev}
-            className="p-4 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:bg-white hover:text-indigo-600 hover:border-indigo-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-        >
-            <ArrowLeft size={24} />
-        </button>
-        
-        <button 
-            onClick={() => setIsFlipped(!isFlipped)}
-            className="flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-indigo-600 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 shadow-lg shadow-slate-200"
-        >
-            <RotateCw size={20} />
-            <span>Flip Card</span>
-        </button>
-
-        <button 
-            onClick={handleNext}
-            className="p-4 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:bg-white hover:text-indigo-600 hover:border-indigo-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-        >
-            <ArrowRight size={24} />
-        </button>
       </div>
       
       <style>{`

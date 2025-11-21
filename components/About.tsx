@@ -62,13 +62,13 @@ export const About = () => {
                 {/* Developer Image */}
                 <div className="w-32 h-32 rounded-full mb-4 overflow-hidden shadow-xl ring-4 ring-white relative z-10 bg-slate-200">
                    <img 
-                    src="/profile.jpg" 
+                    src="profile.jpg" 
                     onError={(e) => {
-                        // Fallback to a high-quality placeholder if local image isn't found
-                        e.currentTarget.src = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80";
+                        // Fallback to a placeholder if local image isn't found
+                        e.currentTarget.src = "https://ui-avatars.com/api/?name=Win+Paing+Soe&background=4F46E5&color=fff&size=256";
                     }}
                     alt="Win Paing Soe" 
-                    className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                    />
                 </div>
                 
@@ -87,15 +87,15 @@ export const About = () => {
                 </h4>
                 
                 <div className="space-y-4">
-                    <a href="mailto:sysadm.winpaingsoe@gmail.com" className="flex items-center gap-4 p-4 rounded-xl hover:bg-blue-50 transition-all group border border-slate-100 hover:border-blue-100">
+                    <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-blue-50 transition-all group border border-slate-100 hover:border-blue-100">
                         <div className="p-2.5 bg-blue-100 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
                             <Mail size={20} />
                         </div>
                         <div className="min-w-0 flex-1">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Email Address</p>
-                            <p className="text-slate-900 font-medium font-mono text-sm sm:text-base truncate">sysadm.winpaingsoe@gmail.com</p>
+                            <a href="mailto:sysadm.winpaingsoe@gmail.com" className="text-slate-900 font-medium font-mono text-sm sm:text-base truncate hover:text-blue-600 transition-colors">sysadm.winpaingsoe@gmail.com</a>
                         </div>
-                    </a>
+                    </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-emerald-50 transition-all group border border-slate-100 hover:border-emerald-100">
@@ -104,7 +104,7 @@ export const About = () => {
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Thailand</p>
-                                <p className="text-slate-900 font-medium font-mono text-sm">+66 61 9623 368</p>
+                                <a href="tel:+66619623368" className="text-slate-900 font-medium font-mono text-sm hover:text-emerald-600 transition-colors">+66 61 9623 368</a>
                             </div>
                         </div>
 
@@ -114,7 +114,7 @@ export const About = () => {
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Myanmar</p>
-                                <p className="text-slate-900 font-medium font-mono text-sm">+95 9 790 430 242</p>
+                                <a href="tel:+959790430242" className="text-slate-900 font-medium font-mono text-sm hover:text-emerald-600 transition-colors">+95 9 790 430 242</a>
                             </div>
                         </div>
                     </div>

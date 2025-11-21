@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ProgressContextType, KanjiStatus } from '../types';
+import { ProgressContextType, KanjiStatus, Favorites } from '../types';
 
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
 
@@ -15,14 +15,17 @@ export const useProgress = () => {
 export const ProgressProvider = ({ children }: { children: React.ReactNode }) => {
   const [n4Status, setN4Status] = useState<Record<number, KanjiStatus>>({});
   const [n5Status, setN5Status] = useState<Record<number, KanjiStatus>>({});
+  const [favorites, setFavorites] = useState<Favorites>({ n4: [], n5: [] });
 
   // Load initial state
   useEffect(() => {
     const storedN4 = localStorage.getItem('n4_progress');
     const storedN5 = localStorage.getItem('n5_progress');
+    const storedFavorites = localStorage.getItem('favorites');
     
     if (storedN4) setN4Status(JSON.parse(storedN4));
     if (storedN5) setN5Status(JSON.parse(storedN5));
+    if (storedFavorites) setFavorites(JSON.parse(storedFavorites));
   }, []);
 
   const updateN4Status = (id: number, status: KanjiStatus) => {
@@ -41,6 +44,19 @@ export const ProgressProvider = ({ children }: { children: React.ReactNode }) =>
     });
   };
 
+  const toggleFavorite = (type: 'n4' | 'n5', id: number) => {
+    setFavorites(prev => {
+      const currentList = prev[type];
+      const newList = currentList.includes(id)
+        ? currentList.filter(item => item !== id)
+        : [...currentList, id];
+      
+      const next = { ...prev, [type]: newList };
+      localStorage.setItem('favorites', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const getStats = () => {
     const n4Values = Object.values(n4Status);
     const n5Values = Object.values(n5Status);
@@ -54,7 +70,7 @@ export const ProgressProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   return (
-    <ProgressContext.Provider value={{ n4Status, n5Status, updateN4Status, updateN5Status, getStats }}>
+    <ProgressContext.Provider value={{ n4Status, n5Status, updateN4Status, updateN5Status, getStats, favorites, toggleFavorite }}>
       {children}
     </ProgressContext.Provider>
   );

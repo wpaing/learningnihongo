@@ -54,6 +54,11 @@ export interface AuthContextType {
 
 export type KanjiStatus = 'new' | 'learning' | 'mastered';
 
+export interface Favorites {
+  n4: number[];
+  n5: number[];
+}
+
 export interface ProgressContextType {
   n4Status: Record<number, KanjiStatus>;
   n5Status: Record<number, KanjiStatus>;
@@ -65,6 +70,8 @@ export interface ProgressContextType {
     n5Mastered: number;
     n5Learning: number;
   };
+  favorites: Favorites;
+  toggleFavorite: (type: 'n4' | 'n5', id: number) => void;
 }
 
 export interface SameMeaningEntry {

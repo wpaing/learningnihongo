@@ -109,11 +109,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateProfile = (data: Partial<User>) => {
     if (!user) return;
 
+    // Instant update for realtime feel
     const updatedUser = { ...user, ...data };
     setUser(updatedUser);
     localStorage.setItem('kanji_current_session', JSON.stringify(updatedUser));
 
-    // Update in the "database" (users list) only if it's an email user (social users might not be in this list in this simple mock)
+    // Update in the "database" (users list) if it's an email user
     const usersStr = localStorage.getItem('kanji_users');
     if (usersStr) {
       const users = JSON.parse(usersStr);
